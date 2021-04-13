@@ -4,18 +4,19 @@
 
 module Main where
 
+import Control.Monad (replicateM)
+
 import Graphics.Gloss
 import Graphics.Gloss.Data.ViewPort
-import System.Random (randomRIO)
+import Graphics.Gloss.Interface.IO.Game
+
+import System.Exit (exitSuccess)
+import System.Random (randomIO)
 
 import Life.Cell
 import Life.Rule
 
 type Model = [Cells]
-
-step :: Rule -> Cells -> Cells
-step rule generation =
-  map (apply rule . neighbourhood generation) [0 .. length generation - 1 ]
 
 dimension :: Float
 dimension = 20
@@ -23,110 +24,167 @@ dimension = 20
 padding :: Float
 padding = 0
 
+genSize :: Int
+genSize = 20
+
 cellColor :: Cell -> Color
 cellColor Alive = yellow
 cellColor Dead = greyN 0.5
 
-renderRule :: Rule -> Picture
-renderRule Rule {..} =
-  translate (negate $ ruleRenderWidth) 0 $ pictures
-    [ renderOption Alive Alive Alive aaa
-    , translate (1 * translateUnit) 0 $ renderOption Alive Alive  Dead aad
-    , translate (2 * translateUnit) 0 $ renderOption Alive  Dead Alive ada
-    , translate (3 * translateUnit) 0 $ renderOption Alive  Dead  Dead add
-    , translate (4 * translateUnit) 0 $ renderOption  Dead Alive Alive daa
-    , translate (5 * translateUnit) 0 $ renderOption  Dead Alive  Dead dad
-    , translate (6 * translateUnit) 0 $ renderOption  Dead  Dead Alive dda
-    , translate (7 * translateUnit) 0 $ renderOption  Dead  Dead  Dead ddd
+data World = World
+  { pastGens :: [Cells]
+  , currentGen :: Cells
+  , worldRule :: Rule
+  , advance :: Bool
+  , finished :: Bool
+  , viewPort :: ViewPort
+  }
+
+
+randomWorld :: ViewPort -> IO World
+randomWorld viewPort = do
+  rule <- randomRule
+  currentGen <- replicateM genSize randomCell
+  pure $ World
+    { pastGens = []
+    , currentGen = currentGen
+    , worldRule = rule
+    , advance = True
+    , finished = False
+    , viewPort = viewPort
+    }
+  where
+    randomCell :: IO Cell
+    randomCell = do
+      bool <- randomIO 
+      pure (if bool then Alive else Dead)
+
+    randomRule :: IO Rule
+    randomRule = do
+      aaa <- randomCell
+      aad <- randomCell
+      ada <- randomCell
+      add <- randomCell
+      daa <- randomCell
+      dad <- randomCell
+      dda <- randomCell
+      ddd <- randomCell
+      pure Rule {..}
+      where
+
+
+renderWorld :: World -> Picture
+renderWorld World {..} =
+  pictures
+    [ translate (-400) 400 (renderRule worldRule)
+    , translate (-400) 300 (renderHistory (pastGens <> [currentGen]))
     ]
   where
-    translateUnit = 3 * dimension + 2 * padding + 50
-    ruleRenderWidth = 4 * (3 * dimension + 2 * padding) + 3 * 50
+    renderCell :: Cell -> Picture
+    renderCell cell =
+      color (cellColor cell) (rectangleSolid dimension dimension)
 
-    renderOption :: Cell -> Cell -> Cell -> Cell -> Picture
-    renderOption left middle right result =
+    renderCellOffset :: Int -> Cell -> Picture
+    renderCellOffset offset =
+      translate ((dimension + padding) * fromIntegral offset) 0 . renderCell
+
+    renderGen :: Cells -> Picture
+    renderGen = pictures . map (uncurry renderCellOffset) . zip [0..]
+
+    renderGenOffset :: Int -> Cells -> Picture
+    renderGenOffset offset =
+      translate 0 (negate $ dimension * fromIntegral offset) . renderGen
+
+    renderHistory :: [Cells] -> Picture
+    renderHistory = pictures . map (uncurry renderGenOffset) . zip [0..]
+
+    renderResult :: Cell -> Picture
+    renderResult = translation . renderCell
+      where
+        translation :: Picture -> Picture
+        translation = 
+          translate (dimension + padding) (negate $ dimension + padding)
+
+    renderCase :: (Cell, Cell, Cell, Cell) -> Picture
+    renderCase (left, middle, right, result) =
       pictures
         [ renderCell left
-        , translate (dimension + padding) 0 $ renderCell middle
-        , translate (2 * (dimension + padding)) 0 $ renderCell right
-        , translate (dimension + padding) (negate $ dimension + padding) $ renderCell result
+        , renderCellOffset 1 middle
+        , renderCellOffset 2 right
+        , renderResult result
         ]
 
-renderCell :: Cell -> Picture
-renderCell cell = color (cellColor cell) (rectangleSolid dimension dimension)
+    renderCaseOffset :: Int -> (Cell, Cell, Cell, Cell) -> Picture
+    renderCaseOffset offset =
+      let
+        column = fromIntegral (offset `mod` 4)
+        columnUnit = 4 * dimension + 3 * padding
+        row = fromIntegral (offset `div` 4)
+        rowUnit = 3 * dimension + 2 * padding
+      in
+        translate (column * columnUnit) (row * rowUnit) . renderCase
 
-renderModel :: Model -> Picture
-renderModel grid =
-  let row n = displayRow (grid !! n)
-      translation n = translate 0 (negate $ (fromIntegral n * (dimension + padding)))
-  in pictures $ map (\n -> translation n (row n)) [0 .. length grid - 1]
-  where
-    displayRow :: Cells -> Picture
-    displayRow generation =
-      let box n = renderCell (generation !! n)
-          translation n = translate (fromIntegral n * (dimension + padding)) 0
-      in pictures $ map (\n -> translation n (box n)) [0 .. length generation - 1]
-
-simulateRule :: Rule -> IO ()
-simulateRule rule =
-  simulate
-    FullScreen -- display mode
-    black      -- background color
-    5          -- number of steps to take per second
-    initial    -- initial model
-    render     -- render the model
-    update     -- update the model at each step
-  where
-    initial:: Model
-    initial= [concat (replicate 50 [Dead, Alive, Dead])]
-
-    x = 101 * (dimension + padding) / 2
-
-    render :: Model -> Picture
-    render model =
-      pictures
-        [ translate (-x) 400 (renderModel model)
-        , translate 0 500 (renderRule rule)
+    renderCases :: [(Cell, Cell, Cell, Cell)] -> Picture
+    renderCases = pictures . map (uncurry renderCaseOffset) . zip [0..]
+    
+    renderRule :: Rule -> Picture
+    renderRule Rule {..} =
+      renderCases $
+        [ (Alive, Alive, Alive, aaa)
+        , (Alive, Alive,  Dead, aad)
+        , (Alive,  Dead, Alive, ada)
+        , (Alive,  Dead,  Dead, add)
+        , ( Dead, Alive, Alive, daa)
+        , ( Dead, Alive,  Dead, dad)
+        , ( Dead,  Dead, Alive, dda)
+        , ( Dead,  Dead,  Dead, ddd)
         ]
 
-    update :: ViewPort -> Float -> Model -> Model
-    update _viewPort _time grid =
-      let generation = last grid
-      in grid <> [step rule generation]
 
-sierpinski :: Rule
-sierpinski =
-  Rule
-    { aaa = Dead
-    , aad = Alive
-    , ada = Dead
-    , add = Alive
-    , daa = Alive
-    , dad = Dead
-    , dda = Alive
-    , ddd = Dead
-    }
+handleEvents :: Event -> World -> IO World
+handleEvents (EventKey (SpecialKey KeyEnter) Down _mod _pos) world =
+  randomWorld (viewPort world)
+handleEvents (EventKey (SpecialKey KeySpace) Down _mod _pos) world =
+  pure (world { advance = not (advance world)})
+handleEvents (EventKey (SpecialKey KeyEsc) Down _mod _pos) _world = exitSuccess
+handleEvents _ world = pure world
 
-randomRule :: IO Rule
-randomRule = do
-  aaa <- randomCell
-  aad <- randomCell
-  ada <- randomCell
-  add <- randomCell
-  daa <- randomCell
-  dad <- randomCell
-  dda <- randomCell
-  ddd <- randomCell
-  pure Rule {..}
+
+stepWorld :: Float -> World -> IO World
+stepWorld _time world@World{..} = do
+  print (length pastGens)
+  if advance && not finished
+  then pure newWorld
+  else pure world
   where
-  randomCell :: IO Cell
-  randomCell = do
-    n <- randomRIO (0,1) :: IO Int
-    pure (if n == 0 then Dead else Alive)
+    step :: Rule -> Cells -> Cells
+    step rule cells =
+      map (apply rule . neighbourhood cells) [0 .. length cells - 1 ]
 
-simulateRandomRule :: IO ()
-simulateRandomRule = randomRule >>= simulateRule
+    newWorld :: World
+    newWorld =
+      World
+        { pastGens = pastGens <> [currentGen]
+        , currentGen = step worldRule currentGen
+        , worldRule = worldRule
+        , advance = advance
+        , finished = length pastGens >= genSize
+        , viewPort = viewPort
+        }
+
+
+playRandomRule :: IO ()
+playRandomRule = do
+  initialWorld <- randomWorld viewPortInit
+  playIO
+    FullScreen
+    black
+    5
+    initialWorld
+    (pure . renderWorld)
+    handleEvents
+    stepWorld
+
 
 main :: IO ()
--- main = simulateRule sierpinski
-main = simulateRandomRule
+main = playRandomRule
