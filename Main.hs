@@ -14,7 +14,7 @@ import System.Exit (exitSuccess)
 import System.Random (randomIO)
 
 import Life.Rule
-import Life.Render.World
+import Life.Render
 import Life.Types
 
 -- * Global Settings
@@ -101,12 +101,11 @@ handleEvents (EventKey (SpecialKey KeyEsc) Down _mod _pos) _world =
 handleEvents _ simState = pure simState
 
 
-stepWorld :: Float -> World -> IO World
-stepWorld _time world@World{..} = do
-  print (length pastGens)
-  if advance && not finished
-  then pure newWorld
-  else pure world
+stepWorld :: Float -> SimState -> IO SimState
+stepWorld _time simState@SimState{..} = do
+  if simAdvance && not simFinished
+  then pure nextSimState
+  else pure simState
   where
     step :: Rule -> Generation -> Generation
     step rule cells =
@@ -114,14 +113,20 @@ stepWorld _time world@World{..} = do
 
     newWorld :: World
     newWorld =
-      World
+      let World{..} = simWorld
+      in World
         { pastGens = pastGens <> [currentGen]
         , currentGen = step worldRule currentGen
         , worldRule = worldRule
-        , advance = advance
-        , finished = length pastGens >= genSize
-        , viewPort = viewPort
         }
+
+    nextSimState :: SimState
+    nextSimState = SimState
+      { simWorld = newWorld
+      , simAdvance = simAdvance
+      , simFinished = length (pastGens simWorld) >= genSize
+      , simViewPort = simViewPort
+      }
 
 
 playRandomRule :: IO ()
