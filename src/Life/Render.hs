@@ -34,9 +34,26 @@ renderWorld (RenderSettings dimension padding cellColor genSize) World{..} =
     renderGeneration :: Generation -> Picture
     renderGeneration = pictures . map (uncurry renderCellOffset) . zip [0..]
 
+    offsetTranslation :: Int -> Picture -> Picture
+    offsetTranslation offset = translate x (-5)
+      where x = if offset > 9 then -32 else -25
+
+    renderOffset :: Int -> Picture
+    renderOffset n
+      = offsetTranslation n
+      . scale 0.1 0.1
+      . color white
+      . text
+      . show
+      $ n
+
     renderGenerationOffset :: Int -> Generation -> Picture
-    renderGenerationOffset offset =
-      translate 0 (negate $ dimension * fromIntegral offset) . renderGeneration
+    renderGenerationOffset offset generation =
+      translate 0 (negate $ dimension * fromIntegral offset) $
+        pictures
+          [ renderOffset offset
+          , renderGeneration generation
+          ]
 
     renderHistory :: [Generation] -> Picture
     renderHistory
@@ -101,5 +118,3 @@ renderWorld (RenderSettings dimension padding cellColor genSize) World{..} =
 
         y :: Float
         y = historyCenter + padding + 6 * dimension
-
-
