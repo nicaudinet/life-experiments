@@ -13,10 +13,11 @@ import Graphics.Gloss.Interface.IO.Game
 import System.Exit (exitSuccess)
 import System.Random (randomIO)
 
-import Life.Cell
 import Life.Rule
+import Life.Render.World
+import Life.Types
 
-type Model = [Cells]
+-- * Global Settings
 
 dimension :: Float
 dimension = 20
@@ -31,15 +32,10 @@ cellColor :: Cell -> Color
 cellColor Alive = yellow
 cellColor Dead = greyN 0.5
 
-data World = World
-  { pastGens :: [Cells]
-  , currentGen :: Cells
-  , worldRule :: Rule
-  , advance :: Bool
-  , finished :: Bool
-  , viewPort :: ViewPort
-  }
+renderSettings :: RenderSettings
+renderSettings = RenderSettings dimension padding cellColor genSize
 
+--
 
 randomWorld :: ViewPort -> IO World
 randomWorld viewPort = do
@@ -73,74 +69,6 @@ randomWorld viewPort = do
       where
 
 
-renderWorld :: World -> Picture
-renderWorld World {..} =
-  pictures
-    [ translate (-400) 400 (renderRule worldRule)
-    , translate (-400) 300 (renderHistory (pastGens <> [currentGen]))
-    ]
-  where
-    renderCell :: Cell -> Picture
-    renderCell cell =
-      color (cellColor cell) (rectangleSolid dimension dimension)
-
-    renderCellOffset :: Int -> Cell -> Picture
-    renderCellOffset offset =
-      translate ((dimension + padding) * fromIntegral offset) 0 . renderCell
-
-    renderGen :: Cells -> Picture
-    renderGen = pictures . map (uncurry renderCellOffset) . zip [0..]
-
-    renderGenOffset :: Int -> Cells -> Picture
-    renderGenOffset offset =
-      translate 0 (negate $ dimension * fromIntegral offset) . renderGen
-
-    renderHistory :: [Cells] -> Picture
-    renderHistory = pictures . map (uncurry renderGenOffset) . zip [0..]
-
-    renderResult :: Cell -> Picture
-    renderResult = translation . renderCell
-      where
-        translation :: Picture -> Picture
-        translation = 
-          translate (dimension + padding) (negate $ dimension + padding)
-
-    renderCase :: (Cell, Cell, Cell, Cell) -> Picture
-    renderCase (left, middle, right, result) =
-      pictures
-        [ renderCell left
-        , renderCellOffset 1 middle
-        , renderCellOffset 2 right
-        , renderResult result
-        ]
-
-    renderCaseOffset :: Int -> (Cell, Cell, Cell, Cell) -> Picture
-    renderCaseOffset offset =
-      let
-        column = fromIntegral (offset `mod` 4)
-        columnUnit = 4 * dimension + 3 * padding
-        row = fromIntegral (offset `div` 4)
-        rowUnit = 3 * dimension + 2 * padding
-      in
-        translate (column * columnUnit) (row * rowUnit) . renderCase
-
-    renderCases :: [(Cell, Cell, Cell, Cell)] -> Picture
-    renderCases = pictures . map (uncurry renderCaseOffset) . zip [0..]
-    
-    renderRule :: Rule -> Picture
-    renderRule Rule {..} =
-      renderCases $
-        [ (Alive, Alive, Alive, aaa)
-        , (Alive, Alive,  Dead, aad)
-        , (Alive,  Dead, Alive, ada)
-        , (Alive,  Dead,  Dead, add)
-        , ( Dead, Alive, Alive, daa)
-        , ( Dead, Alive,  Dead, dad)
-        , ( Dead,  Dead, Alive, dda)
-        , ( Dead,  Dead,  Dead, ddd)
-        ]
-
-
 handleEvents :: Event -> World -> IO World
 handleEvents (EventKey (SpecialKey KeyEnter) Down _mod _pos) world =
   randomWorld (viewPort world)
@@ -157,7 +85,7 @@ stepWorld _time world@World{..} = do
   then pure newWorld
   else pure world
   where
-    step :: Rule -> Cells -> Cells
+    step :: Rule -> Generation -> Generation
     step rule cells =
       map (apply rule . neighbourhood cells) [0 .. length cells - 1 ]
 
@@ -181,7 +109,7 @@ playRandomRule = do
     black
     5
     initialWorld
-    (pure . renderWorld)
+    (pure . renderWorld renderSettings)
     handleEvents
     stepWorld
 

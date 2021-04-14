@@ -25,10 +25,12 @@ library
   build-depends:
       base >= 4.13 && <4.14
     , random
+    , gloss
   exposed-modules:
-    Life.Cell
     Life.Rule
     Life.Rule.Sierpinski
+    Life.Render.World
+    Life.Types
 
 executable life-experiments
   main-is:

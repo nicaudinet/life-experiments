@@ -1,19 +1,6 @@
 module Life.Rule where
 
-import Life.Cell
-
-data Rule = Rule
-  { aaa :: Cell
-  , aad :: Cell
-  , ada :: Cell
-  , add :: Cell
-  , daa :: Cell
-  , dad :: Cell
-  , dda :: Cell
-  , ddd :: Cell
-  }
-
-type Neighbourhood = (Cell, Cell, Cell)
+import Life.Types
 
 apply :: Rule -> Neighbourhood -> Cell
 apply rule (Alive, Alive, Alive) = aaa rule
@@ -25,7 +12,7 @@ apply rule ( Dead, Alive,  Dead) = dad rule
 apply rule ( Dead,  Dead, Alive) = dda rule
 apply rule ( Dead,  Dead,  Dead) = ddd rule
 
-neighbourhood :: Cells -> Int -> Neighbourhood
+neighbourhood :: Generation -> Int -> Neighbourhood
 neighbourhood generation idx =
   (findCell (idx - 1), findCell idx, findCell (idx + 1))
   where
