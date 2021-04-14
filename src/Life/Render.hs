@@ -1,6 +1,6 @@
 {-# LANGUAGE RecordWildCards #-}
 
-module Life.Render.World
+module Life.Render
   ( RenderSettings(..)
   , renderWorld
   ) where
@@ -17,7 +17,7 @@ data RenderSettings = RenderSettings
   }
 
 renderWorld :: RenderSettings -> World -> Picture
-renderWorld (RenderSettings dimension padding cellColor genSize) World {..} =
+renderWorld (RenderSettings dimension padding cellColor genSize) World{..} =
   pictures
     [ renderRule worldRule
     , renderHistory (pastGens <> [currentGen])

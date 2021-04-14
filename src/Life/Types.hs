@@ -1,7 +1,5 @@
 module Life.Types where
 
-import Graphics.Gloss.Data.ViewPort
-
 -- | Model of a single cell
 data Cell = Alive | Dead
   deriving Eq
@@ -17,9 +15,6 @@ data World = World
   { pastGens :: History
   , currentGen :: Generation
   , worldRule :: Rule
-  , advance :: Bool
-  , finished :: Bool
-  , viewPort :: ViewPort
   }
 
 -- | Type that represents a rule

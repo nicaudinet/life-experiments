@@ -29,7 +29,7 @@ library
   exposed-modules:
     Life.Rule
     Life.Rule.Sierpinski
-    Life.Render.World
+    Life.Render
     Life.Types
 
 executable life-experiments

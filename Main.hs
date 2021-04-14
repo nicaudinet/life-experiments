@@ -35,19 +35,24 @@ cellColor Dead = greyN 0.5
 renderSettings :: RenderSettings
 renderSettings = RenderSettings dimension padding cellColor genSize
 
---
+-- | The complete state of the simulation
+data SimState = SimState
+  { simWorld :: World
+  , simAdvance :: Bool
+  , simFinished :: Bool
+  , simViewPort :: ViewPort
+  }
 
-randomWorld :: ViewPort -> IO World
-randomWorld viewPort = do
+-- * Simulate a random thingy
+
+randomWorld :: IO World
+randomWorld = do
   rule <- randomRule
   currentGen <- replicateM genSize randomCell
   pure $ World
     { pastGens = []
     , currentGen = currentGen
     , worldRule = rule
-    , advance = True
-    , finished = False
-    , viewPort = viewPort
     }
   where
     randomCell :: IO Cell
@@ -68,14 +73,32 @@ randomWorld viewPort = do
       pure Rule {..}
       where
 
+newSimState :: ViewPort -> IO SimState
+newSimState viewPort = do
+  world <- randomWorld
+  pure $ SimState
+    { simWorld = world
+    , simAdvance = True
+    , simFinished = False
+    , simViewPort = viewPort
+    }
 
-handleEvents :: Event -> World -> IO World
-handleEvents (EventKey (SpecialKey KeyEnter) Down _mod _pos) world =
-  randomWorld (viewPort world)
-handleEvents (EventKey (SpecialKey KeySpace) Down _mod _pos) world =
-  pure (world { advance = not (advance world)})
-handleEvents (EventKey (SpecialKey KeyEsc) Down _mod _pos) _world = exitSuccess
-handleEvents _ world = pure world
+
+renderSimState :: SimState -> IO Picture
+renderSimState = pure . renderWorld renderSettings . simWorld
+
+
+handleEvents :: Event -> SimState -> IO SimState
+handleEvents (EventKey (SpecialKey KeyEnter) Down _mod _pos) SimState{..} =
+  -- When the user presses enter, start a new simulation
+  newSimState simViewPort
+handleEvents (EventKey (SpecialKey KeySpace) Down _mod _pos) simState =
+  -- When the user presses space, toggle the advance flag
+  pure (simState { simAdvance = not (simAdvance simState)})
+handleEvents (EventKey (SpecialKey KeyEsc) Down _mod _pos) _world =
+  -- When the user presses escape, quit the simulation
+  exitSuccess
+handleEvents _ simState = pure simState
 
 
 stepWorld :: Float -> World -> IO World
@@ -103,13 +126,13 @@ stepWorld _time world@World{..} = do
 
 playRandomRule :: IO ()
 playRandomRule = do
-  initialWorld <- randomWorld viewPortInit
+  initSimState <- newSimState viewPortInit
   playIO
     FullScreen
     black
     5
-    initialWorld
-    (pure . renderWorld renderSettings)
+    initSimState
+    renderSimState
     handleEvents
     stepWorld
 
