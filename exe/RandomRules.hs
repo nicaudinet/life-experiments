@@ -129,8 +129,8 @@ stepWorld _time simState@SimState{..} = do
       }
 
 
-playRandomRule :: IO ()
-playRandomRule = do
+main :: IO ()
+main = do
   initSimState <- newSimState viewPortInit
   playIO
     FullScreen
@@ -140,7 +140,3 @@ playRandomRule = do
     renderSimState
     handleEvents
     stepWorld
-
-
-main :: IO ()
-main = playRandomRule
