@@ -27,9 +27,12 @@ library
     -threaded
   build-depends:
       base >= 4.13 && <4.14
-    , random
     , gloss
+    , mtl
+    , random
+    , QuickCheck
   exposed-modules:
+    Life.Evolve
     Life.Rule
     Life.Rule.Sierpinski
     Life.Render

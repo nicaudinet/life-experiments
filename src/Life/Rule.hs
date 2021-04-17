@@ -12,7 +12,7 @@ apply rule ( Dead, Alive,  Dead) = dad rule
 apply rule ( Dead,  Dead, Alive) = dda rule
 apply rule ( Dead,  Dead,  Dead) = ddd rule
 
-neighbourhood :: Generation -> Int -> Neighbourhood
+neighbourhood :: CellRow -> Int -> Neighbourhood
 neighbourhood generation idx =
   (findCell (idx - 1), findCell idx, findCell (idx + 1))
   where

@@ -1,35 +1,88 @@
-module EvolvingRules where
+{-# LANGUAGE RecordWildCards #-}
 
+module Main where
+
+import Control.Monad.Reader
 import Graphics.Gloss
-import Graphics.Gloss.Data.ViewPort
 import Graphics.Gloss.Interface.IO.Game
+import System.Exit (exitSuccess)
+import Test.QuickCheck
 
 import Life.Types
+import Life.Evolve
+import Life.Render
 
-data SimState
+rowSize :: Int
+rowSize = 20
 
-newSimState :: ViewPort -> IO SimState
-newSimState viewPort = undefined
+populationSize :: Int
+populationSize = 100
 
-initSimState :: SimState
-initSimState = undefined
+cellColor :: Cell -> Color
+cellColor Alive = yellow
+cellColor Dead = greyN 0.5
+
+renderSettings :: RenderSettings
+renderSettings = RenderSettings
+  { renderDimension = 20
+  , renderPadding = 1
+  , renderCellColor = cellColor
+  , renderRowSize = rowSize
+  }
+
+data SimState = SimState
+  { simGenomes :: [Genome]
+  , simTargetGrid :: CellGrid
+  }
+
+randomGenome :: IO Genome
+randomGenome = do
+  genomeInit <- replicateM rowSize (generate arbitrary)
+  genomeRule <- generate arbitrary
+  pure Genome{..}
+
+parseCellGrid :: String -> CellGrid
+parseCellGrid = map (map parseCell) . lines
+  where
+    parseCell :: Char -> Cell
+    parseCell '0' = Alive
+    parseCell '.' = Dead
+    parseCell _ = error "Bad character in target file"
+
+newSimState :: IO SimState
+newSimState = do
+  genomes <- replicateM populationSize randomGenome
+  target <- parseCellGrid <$> readFile "test.target"
+  pure (SimState genomes target)
 
 renderSimState :: SimState -> IO Picture
-renderSimState = undefined
+renderSimState (SimState genomes targetGrid) =
+  pure . flip runReader renderSettings . fmap pictures $ sequence
+    [ renderCellGrid (phenotype bestGenome)
+    , renderRule (genomeRule bestGenome)
+    , renderInitRow (genomeInit bestGenome)
+    ]
+  where bestGenome = best targetGrid genomes
 
 handleEvents :: Event -> SimState -> IO SimState
-handleEvents = undefined
+handleEvents (EventKey (SpecialKey KeyEsc) Down _mod _pos) _simState =
+  -- When the user presses escape, quit the simulation
+  exitSuccess
+handleEvents _event simState = pure simState
 
 stepWorld :: Float -> SimState -> IO SimState
-stepWorld = undefined
+stepWorld _time (SimState genomes target) = do
+  newGenomes <- evolveStep target genomes
+  print (fitness target (best target newGenomes))
+  pure (SimState newGenomes target)
 
 main :: IO ()
 main = do
-  initSimState <- newSimState viewPortInit
+  initSimState <- newSimState
   playIO
     FullScreen
     black
-    5
+    10
     initSimState
     renderSimState
     handleEvents
