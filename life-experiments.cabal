@@ -38,7 +38,26 @@ library
     Life.Render
     Life.Types
 
-executable random-rules
+executable dev
+  main-is:
+    Dev.hs
+  -- other-modules:
+  ghc-options:
+    -Wall
+    -Wno-partial-type-signatures
+    -O2
+    -threaded
+  build-depends:
+      base >=4.13 && <4.14
+    , optional-args
+    , text
+    , turtle
+  hs-source-dirs:
+    exe
+  default-language:
+    Haskell2010
+
+executable random-rule
   main-is:
     RandomRules.hs
   -- other-modules:
@@ -57,7 +76,7 @@ executable random-rules
   default-language:
     Haskell2010
 
-executable evolving-rules
+executable evolve-rule
   main-is:
     EvolvingRules.hs
   -- other-modules:
