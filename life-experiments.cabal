@@ -76,9 +76,9 @@ executable random-rule
   default-language:
     Haskell2010
 
-executable evolve-rule
+executable evolve-simple-rule
   main-is:
-    EvolvingRules.hs
+    EvolveSimpleRule.hs
   -- other-modules:
   ghc-options:
     -Wall
@@ -97,7 +97,7 @@ executable evolve-rule
   default-language:
     Haskell2010
 
-test-suite test-evolving-rules
+test-suite test-evolve-simple-rules
   type:
     exitcode-stdio-1.0
   main-is:

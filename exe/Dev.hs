@@ -11,14 +11,14 @@ import Turtle
 import Prelude hiding (FilePath)
 
 data Action = Ghcid Executable | Run Executable | Test Executable
-data Executable = Dev | RandomRule | EvolveRule
+data Executable = Dev | RandomRule | EvolveSimpleRule
   deriving (Show, Eq)
 
 executablesMap :: [(Executable, Text)]
 executablesMap =
   [ (Dev, "dev")
   , (RandomRule, "random-rule")
-  , (EvolveRule, "evolve-rule")
+  , (EvolveSimpleRule, "evolve-simple-rule")
   ]
 
 executableToText :: Executable -> Text
@@ -52,7 +52,7 @@ run :: Executable -> Shell ExitCode
 run exec = proc "cabal" ["run", "exe:" <> executableToText exec] mempty
 
 test :: Executable -> Shell ExitCode
-test EvolveRule = proc "cabal" ["test", "test-evolve-rule"] mempty
+test EvolveSimpleRule = proc "cabal" ["test", "test-evolve-simple-rule"] mempty
 test exec = error $ "Tests not implemented for executable " <> show exec
 
 action :: Action -> Shell ExitCode
