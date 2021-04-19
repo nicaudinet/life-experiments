@@ -107,7 +107,7 @@ stepWorld _time simState@SimState{..} = do
   then pure nextSimState
   else pure simState
   where
-    step :: Rule -> Generation -> Generation
+    step :: Rule -> CellRow -> CellRow
     step rule cells =
       map (apply rule . neighbourhood cells) [0 .. length cells - 1 ]
 
