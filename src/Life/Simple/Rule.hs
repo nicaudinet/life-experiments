@@ -1,6 +1,37 @@
 module Life.Simple.Rule where
 
-import Life.Types
+import Test.QuickCheck
+
+import Life.Cell
+
+-- | Type that represents a rule
+data Rule = Rule
+  { aaa :: Cell
+  , aad :: Cell
+  , ada :: Cell
+  , add :: Cell
+  , daa :: Cell
+  , dad :: Cell
+  , dda :: Cell
+  , ddd :: Cell
+  }
+  deriving Show
+
+instance Arbitrary Rule where
+  arbitrary
+    =   Rule
+    <$> arbitrary
+    <*> arbitrary
+    <*> arbitrary
+    <*> arbitrary
+    <*> arbitrary
+    <*> arbitrary
+    <*> arbitrary
+    <*> arbitrary
+
+
+-- | A neighbourhood of cells
+type Neighbourhood = (Cell, Cell, Cell)
 
 apply :: Rule -> Neighbourhood -> Cell
 apply rule (Alive, Alive, Alive) = aaa rule

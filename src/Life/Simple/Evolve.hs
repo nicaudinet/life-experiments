@@ -5,9 +5,20 @@ module Life.Simple.Evolve where
 import Control.Monad (zipWithM, replicateM)
 import Data.List (sortOn)
 import System.Random (randomIO, randomRIO)
+import Test.QuickCheck
 
-import Life.Types
-import Life.Rule
+import Life.Cell
+import Life.Simple.Rule
+
+-- | A type containing the information (genes) to create a full grid (phenotype)
+data Genome = Genome
+  { genomeInit :: CellRow
+  , genomeRule :: Rule
+  }
+  deriving Show
+
+instance Arbitrary Genome where
+  arbitrary = Genome <$> arbitrary <*> arbitrary 
 
 phenotype :: Genome -> CellGrid
 phenotype (Genome initRow rule) = snd (iterate step initState !! genSize)

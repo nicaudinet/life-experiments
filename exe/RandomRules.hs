@@ -5,6 +5,7 @@
 module Main where
 
 import Control.Monad (replicateM)
+import Control.Monad.Reader (runReader)
 
 import Graphics.Gloss
 import Graphics.Gloss.Data.ViewPort
@@ -13,9 +14,9 @@ import Graphics.Gloss.Interface.IO.Game
 import System.Exit (exitSuccess)
 import System.Random (randomIO)
 
-import Life.Rule
+import Life.Cell
 import Life.Render
-import Life.Types
+import Life.Simple.Rule
 
 -- * Global Settings
 
@@ -34,6 +35,13 @@ cellColor Dead = greyN 0.5
 
 renderSettings :: RenderSettings
 renderSettings = RenderSettings dimension padding cellColor genSize
+
+-- | The whole state of the world
+data World = World
+  { pastGens :: CellGrid
+  , currentGen :: CellRow
+  , worldRule :: Rule
+  }
 
 -- | The complete state of the simulation
 data SimState = SimState
@@ -83,6 +91,13 @@ newSimState viewPort = do
     , simViewPort = viewPort
     }
 
+
+renderWorld :: RenderSettings -> World -> Picture
+renderWorld settings World{..} =
+  flip runReader settings . fmap pictures . sequence $
+    [ renderRule worldRule
+    , renderCellGrid (pastGens <> [currentGen])
+    ]
 
 renderSimState :: SimState -> IO Picture
 renderSimState = pure . renderWorld renderSettings . simWorld

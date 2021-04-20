@@ -5,7 +5,8 @@ module Life.Render where
 import Control.Monad.Reader
 import Graphics.Gloss
 
-import Life.Types
+import Life.Cell
+import Life.Simple.Rule
 
 data RenderSettings = RenderSettings
   { renderDimension :: Float
@@ -15,13 +16,6 @@ data RenderSettings = RenderSettings
   }
 
 type Render a = Reader RenderSettings a
-
-renderWorld :: RenderSettings -> World -> Picture
-renderWorld renderSettings World{..} =
-  flip runReader renderSettings . fmap pictures . sequence $
-    [ renderRule worldRule
-    , renderCellGrid (pastGens <> [currentGen])
-    ]
 
 renderCell :: Cell -> Render Picture
 renderCell cell = do

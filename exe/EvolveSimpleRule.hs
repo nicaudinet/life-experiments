@@ -8,9 +8,9 @@ import Graphics.Gloss.Interface.IO.Game
 import System.Exit (exitSuccess)
 import Test.QuickCheck
 
-import Life.Types
-import Life.Evolve
+import Life.Cell
 import Life.Render
+import Life.Simple.Evolve
 
 rowSize :: Int
 rowSize = 20

@@ -1,6 +1,7 @@
 module Life.Simple.Rule.Sierpinski where
 
-import Life.Types
+import Life.Cell
+import Life.Simple.Rule
 
 sierpinski :: Rule
 sierpinski =
