@@ -1,6 +1,6 @@
 {-# LANGUAGE RecordWildCards #-}
 
-module Life.Evolve where
+module Life.Simple.Evolve where
 
 import Control.Monad (zipWithM, replicateM)
 import Data.List (sortOn)

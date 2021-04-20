@@ -32,9 +32,9 @@ library
     , random
     , QuickCheck
   exposed-modules:
-    Life.Evolve
-    Life.Rule
-    Life.Rule.Sierpinski
+    Life.Simple.Evolve
+    Life.Simple.Rule
+    Life.Simple.Rule.Sierpinski
     Life.Render
     Life.Types
 

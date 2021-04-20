@@ -1,4 +1,4 @@
-module Life.Rule where
+module Life.Simple.Rule where
 
 import Life.Types
 

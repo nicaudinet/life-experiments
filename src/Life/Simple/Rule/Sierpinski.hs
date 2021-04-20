@@ -1,4 +1,4 @@
-module Life.Rule.Sierpinski where
+module Life.Simple.Rule.Sierpinski where
 
 import Life.Types
 
