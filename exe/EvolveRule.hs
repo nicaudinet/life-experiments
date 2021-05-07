@@ -8,8 +8,8 @@ import Graphics.Gloss.Interface.IO.Game
 import System.Exit (exitSuccess)
 import Test.QuickCheck
 
-import Life.Types
-import Life.Evolve
+import Life.Cell
+import Life.Complex.Evolve
 import Life.Render
 
 rowSize :: Int
@@ -38,7 +38,7 @@ data SimState = SimState
 randomGenome :: IO Genome
 randomGenome = do
   genomeInit <- replicateM rowSize (generate arbitrary)
-  genomeRule <- generate arbitrary
+  genomeRule <- replicateM 100 (generate arbitrary)
   pure Genome{..}
 
 parseCellGrid :: String -> CellGrid
@@ -59,8 +59,8 @@ renderSimState :: SimState -> IO Picture
 renderSimState (SimState genomes targetGrid) =
   pure . flip runReader renderSettings . fmap pictures $ sequence
     [ renderCellGrid (phenotype bestGenome)
-    , renderRule (genomeRule bestGenome)
-    , renderInitRow (genomeInit bestGenome)
+    -- , renderRule (genomeRule bestGenome)
+    -- , renderInitRow (genomeInit bestGenome)
     ]
   where bestGenome = best targetGrid genomes
 

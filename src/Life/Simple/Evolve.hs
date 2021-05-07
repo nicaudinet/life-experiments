@@ -4,7 +4,7 @@ module Life.Simple.Evolve where
 
 import Control.Monad (zipWithM, replicateM)
 import Data.List (sortOn)
-import System.Random (randomIO, randomRIO)
+import System.Random (randomRIO)
 import Test.QuickCheck
 
 import Life.Cell
@@ -46,28 +46,22 @@ fitness targetGrid genome = sum $
 mate :: Genome -> Genome -> IO Genome
 mate (Genome init1 rule1) (Genome init2 rule2) = Genome <$> newInit <*> newRule
   where
-    newCell :: Cell -> Cell -> IO Cell
-    newCell cell1 cell2 = do
-      cond <- randomIO
-      let cell = if cond then cell1 else cell2
-      mutate <- randomRIO (0, 100)
-      if (mutate :: Int) == 0
-      then pure $ if cell == Alive then Dead else Alive
-      else pure cell
-    
+    cell :: Cell -> Cell -> IO Cell
+    cell = newCell 100
+
     newInit :: IO CellRow
-    newInit = zipWithM newCell init1 init2
+    newInit = zipWithM cell init1 init2
 
     newRule :: IO Rule
     newRule = do
-      aaa <- newCell (aaa rule1) (aaa rule2)
-      aad <- newCell (aad rule1) (aad rule2)
-      ada <- newCell (ada rule1) (ada rule2)
-      add <- newCell (add rule1) (add rule2)
-      daa <- newCell (daa rule1) (daa rule2)
-      dad <- newCell (dad rule1) (dad rule2)
-      dda <- newCell (dda rule1) (dda rule2)
-      ddd <- newCell (ddd rule1) (ddd rule2)
+      aaa <- cell (aaa rule1) (aaa rule2)
+      aad <- cell (aad rule1) (aad rule2)
+      ada <- cell (ada rule1) (ada rule2)
+      add <- cell (add rule1) (add rule2)
+      daa <- cell (daa rule1) (daa rule2)
+      dad <- cell (dad rule1) (dad rule2)
+      dda <- cell (dda rule1) (dda rule2)
+      ddd <- cell (ddd rule1) (ddd rule2)
       pure Rule{..}
 
 evolveStep :: CellGrid -> [Genome] -> IO [Genome]

@@ -1,5 +1,6 @@
 module Life.Cell where
 
+import System.Random (randomIO, randomRIO)
 import Test.QuickCheck
 
 -- | Model of a single cell
@@ -26,3 +27,14 @@ type CellGrid = [CellRow]
 
 showCellGrid :: CellGrid -> String
 showCellGrid = unlines . map showCellRow
+
+-- | Randomly choose one of two cells, with some change of mutation
+newCell :: Int -> Cell -> Cell -> IO Cell
+newCell mutationChance cell1 cell2 = do
+  cond <- randomIO
+  let cell = if cond then cell1 else cell2
+  mutate <- randomRIO (0, mutationChance)
+  if (mutate :: Int) == 0
+  then pure $ if cell == Alive then Dead else Alive
+  else pure cell
+    

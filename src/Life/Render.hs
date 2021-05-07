@@ -33,14 +33,9 @@ renderCellOffset offset cell = do
 renderCellRow :: CellRow -> Render Picture
 renderCellRow = fmap pictures . mapM (uncurry renderCellOffset) . zip [0..]
 
-offsetTranslation :: Int -> Picture -> Picture
-offsetTranslation offset = translate x (-5)
-  where x = if offset > 9 then -32 else -25
-
 renderOffset :: Int -> Picture
 renderOffset n
-  = offsetTranslation n
-  . scale 0.1 0.1
+  = scale 0.1 0.1
   . color white
   . text
   . show
@@ -52,15 +47,39 @@ renderCellRowOffset offset generation = do
   padding <- asks renderPadding
   let y = negate $ (dimension + padding) * fromIntegral offset
   fmap (translate 0 y . pictures) . sequence $
-    [ pure (renderOffset offset)
+    [ pure (trans offset (renderOffset offset))
     , renderCellRow generation
     ]
+  where
+    trans :: Int -> Picture -> Picture
+    trans i = translate x (-5)
+      where x = if i > 9 then -32 else -25
+
+renderOffsetRow :: Int -> Render Picture
+renderOffsetRow n = do
+  center <- gridCenter
+  dimension <- asks renderDimension
+  padding <- asks renderPadding
+  translate (-(center + 5)) (center + dimension + padding) . pictures <$>
+    mapM renderNum [0 .. n]
+  where
+    trans :: Int -> Picture -> Render Picture
+    trans i pic = do
+      dimension <- asks renderDimension
+      padding <- asks renderPadding
+      pure $ translate (fromIntegral i * (dimension + padding)) 0 pic
+
+    renderNum :: Int -> Render Picture
+    renderNum i = trans i (renderOffset i)
 
 renderCellGrid :: CellGrid -> Render Picture
 renderCellGrid cellGrid = do
   center <- gridCenter
-  translate (-center) center . pictures <$>
-    mapM (uncurry renderCellRowOffset) (zip [0..] cellGrid)
+  numRow <- renderOffsetRow (pred . length $ cellGrid !! 0)
+  grid <-
+    translate (-center) center . pictures <$>
+      mapM (uncurry renderCellRowOffset) (zip [0..] cellGrid)
+  pure (pictures [numRow, grid])
 
 gridCenter :: Render Float
 gridCenter = do

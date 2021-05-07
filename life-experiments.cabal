@@ -26,12 +26,17 @@ library
     -O2
   build-depends:
       base >= 4.13 && <4.14
+    , containers
+    , generic-lens
     , gloss
+    , lens
     , mtl
     , random
     , QuickCheck
   exposed-modules:
     Life.Cell
+    Life.Complex.Rule
+    Life.Complex.Evolve
     Life.Render
     Life.Simple.Evolve
     Life.Simple.Rule
