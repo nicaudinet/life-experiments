@@ -14,6 +14,11 @@ showCell :: Cell -> Char
 showCell Alive = '0'
 showCell Dead = '.'
 
+parseCell :: Char -> Maybe Cell
+parseCell '0' = Just Alive
+parseCell '.' = Just Dead
+parseCell _ = Nothing
+
 
 -- | Model of a row of cells
 type CellRow = [Cell]
@@ -21,12 +26,18 @@ type CellRow = [Cell]
 showCellRow :: CellRow -> String
 showCellRow = map showCell
 
+parseCellRow :: String -> Maybe CellRow
+parseCellRow = traverse parseCell
+
 
 -- | An ordered list of past generations
 type CellGrid = [CellRow]
 
 showCellGrid :: CellGrid -> String
 showCellGrid = unlines . map showCellRow
+
+parseCellGrid :: String -> Maybe CellGrid
+parseCellGrid = traverse parseCellRow . lines
 
 -- | Randomly choose one of two cells, with some change of mutation
 newCell :: Int -> Cell -> Cell -> IO Cell
@@ -37,4 +48,3 @@ newCell mutationChance cell1 cell2 = do
   if (mutate :: Int) == 0
   then pure $ if cell == Alive then Dead else Alive
   else pure cell
-    

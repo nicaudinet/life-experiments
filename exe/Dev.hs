@@ -11,7 +11,7 @@ import Turtle
 import Prelude hiding (FilePath)
 
 data Action = Ghcid Executable | Run Executable | Test Executable
-data Executable = Dev | RandomRule | EvolveSimpleRule | EvolveRule
+data Executable = Dev | RandomRule | EvolveSimpleRule | EvolveRule | Draw
   deriving (Show, Eq)
 
 executablesMap :: [(Executable, Text)]
@@ -20,6 +20,7 @@ executablesMap =
   , (RandomRule, "random-rule")
   , (EvolveSimpleRule, "evolve-simple-rule")
   , (EvolveRule, "evolve-rule")
+  , (Draw, "draw")
   ]
 
 executableToText :: Executable -> Text

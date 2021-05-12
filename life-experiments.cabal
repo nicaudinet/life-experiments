@@ -37,6 +37,7 @@ library
     Life.Cell
     Life.Complex.Rule
     Life.Complex.Evolve
+    Life.Draw
     Life.Render
     Life.Simple.Evolve
     Life.Simple.Rule
@@ -105,6 +106,27 @@ executable evolve-simple-rule
 executable evolve-rule
   main-is:
     EvolveRule.hs
+  -- other-modules:
+  ghc-options:
+    -Wall
+    -Wno-partial-type-signatures
+    -O2
+    -threaded
+  build-depends:
+      base >=4.13 && <4.14
+    , gloss
+    , life-experiments
+    , mtl
+    , random
+    , QuickCheck
+  hs-source-dirs:
+    exe
+  default-language:
+    Haskell2010
+
+executable draw
+  main-is:
+    Draw.hs
   -- other-modules:
   ghc-options:
     -Wall
