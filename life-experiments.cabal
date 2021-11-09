@@ -2,7 +2,7 @@
 --  init'.  For further documentation, see
 -- http://haskell.org/cabal/users-guide/
 
-cabal-version:       >= 1.8
+cabal-version:       >= 2.0
 name:                life-experiments
 version:             0.1.0.0
 -- synopsis:
@@ -25,7 +25,7 @@ library
     -Wno-partial-type-signatures
     -O2
   build-depends:
-      base >= 4.13 && <4.14
+      base ^>=4.14.1.0
     , containers
     , generic-lens
     , gloss
@@ -53,7 +53,7 @@ executable dev
     -O2
     -threaded
   build-depends:
-      base >=4.13 && <4.14
+      base ^>=4.14.1.0
     , optional-args
     , text
     , turtle
@@ -72,7 +72,7 @@ executable random-rule
     -O2
     -threaded
   build-depends:
-      base >=4.13 && <4.14
+      base ^>=4.14.1.0
     , gloss
     , life-experiments
     , mtl
@@ -92,7 +92,7 @@ executable evolve-simple-rule
     -O2
     -threaded
   build-depends:
-      base >=4.13 && <4.14
+      base ^>=4.14.1.0
     , gloss
     , life-experiments
     , mtl
@@ -113,7 +113,7 @@ executable evolve-rule
     -O2
     -threaded
   build-depends:
-      base >=4.13 && <4.14
+      base ^>=4.14.1.0
     , gloss
     , life-experiments
     , mtl
@@ -134,7 +134,7 @@ executable draw
     -O2
     -threaded
   build-depends:
-      base >=4.13 && <4.14
+      base ^>=4.14.1.0
     , gloss
     , life-experiments
     , mtl
@@ -154,7 +154,7 @@ test-suite test-evolve-simple-rules
   hs-source-dirs:
     test
   build-depends:
-      base >=4.13 && <4.14
+      base ^>=4.14.1.0
     , life-experiments
     , tasty
     , tasty-hunit
