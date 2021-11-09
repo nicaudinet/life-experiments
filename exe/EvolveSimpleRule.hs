@@ -8,7 +8,7 @@ import Graphics.Gloss.Interface.IO.Game
 import System.Exit (exitSuccess)
 import Test.QuickCheck
 
-import Life.Cell
+import Life.Cell hiding (parseCell, parseCellGrid)
 import Life.Render
 import Life.Simple.Evolve
 
