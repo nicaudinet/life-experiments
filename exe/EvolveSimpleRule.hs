@@ -1,14 +1,16 @@
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE RecordWildCards #-}
 
 module Main where
 
+import Control.Monad (replicateM)
 import Control.Monad.Reader
 import Graphics.Gloss
 import Graphics.Gloss.Interface.IO.Game
 import System.Exit (exitSuccess)
 import Test.QuickCheck
 
-import Life.Cell hiding (parseCell, parseCellGrid)
+import Life.Cell
 import Life.Render
 import Life.Simple.Evolve
 
@@ -23,12 +25,13 @@ cellColor Alive = yellow
 cellColor Dead = greyN 0.5
 
 renderSettings :: RenderSettings
-renderSettings = RenderSettings
-  { renderDimension = 20
-  , renderPadding = 1
-  , renderCellColor = cellColor
-  , renderRowSize = rowSize
-  }
+renderSettings =
+  RenderSettings
+    { renderDimension = 20
+    , renderPadding = 1
+    , renderCellColor = cellColor
+    , renderRowSize = rowSize
+    }
 
 data SimState = SimState
   { simGenomes :: [Genome]
@@ -41,28 +44,23 @@ randomGenome = do
   genomeRule <- generate arbitrary
   pure Genome{..}
 
-parseCellGrid :: String -> CellGrid
-parseCellGrid = map (map parseCell) . lines
-  where
-    parseCell :: Char -> Cell
-    parseCell '0' = Alive
-    parseCell '.' = Dead
-    parseCell _ = error "Bad character in target file"
-
 newSimState :: IO SimState
 newSimState = do
   genomes <- replicateM populationSize randomGenome
-  target <- parseCellGrid <$> readFile "test.target"
-  pure (SimState genomes target)
+  parseCellGrid <$> readFile "grid.txt" >>= \case
+    Nothing -> error "Bad character in target file"
+    Just target -> pure (SimState genomes target)
 
 renderSimState :: SimState -> IO Picture
 renderSimState (SimState genomes targetGrid) =
-  pure . flip runReader renderSettings . fmap pictures $ sequence
-    [ renderCellGrid (phenotype bestGenome)
-    , renderRule (genomeRule bestGenome)
-    , renderInitRow (genomeInit bestGenome)
-    ]
-  where bestGenome = best targetGrid genomes
+  pure . flip runReader renderSettings . fmap pictures $
+    sequence
+      [ renderCellGrid (phenotype bestGenome)
+      , renderRule (genomeRule bestGenome)
+      , renderInitRow (genomeInit bestGenome)
+      ]
+ where
+  bestGenome = best targetGrid genomes
 
 handleEvents :: Event -> SimState -> IO SimState
 handleEvents (EventKey (SpecialKey KeyEsc) Down _mod _pos) _simState =

@@ -19,7 +19,6 @@ parseCell '0' = Just Alive
 parseCell '.' = Just Dead
 parseCell _ = Nothing
 
-
 -- | Model of a row of cells
 type CellRow = [Cell]
 
@@ -28,7 +27,6 @@ showCellRow = map showCell
 
 parseCellRow :: String -> Maybe CellRow
 parseCellRow = traverse parseCell
-
 
 -- | An ordered list of past generations
 type CellGrid = [CellRow]
@@ -46,5 +44,5 @@ newCell mutationChance cell1 cell2 = do
   let cell = if cond then cell1 else cell2
   mutate <- randomRIO (0, mutationChance)
   if (mutate :: Int) == 0
-  then pure $ if cell == Alive then Dead else Alive
-  else pure cell
+    then pure $ if cell == Alive then Dead else Alive
+    else pure cell
